@@ -1,20 +1,25 @@
-import MessageForm from 'components/MessageForm';
-import MessagesList from 'components/MessageList';
-import { NextPage } from 'next';
-import { MessagesProvider } from 'utils/useMessage';
-import Layout from '../components/Layout';
+import { type NextPage } from "next";
+import Head from "next/head";
+import { useRef, useState } from "react";
+import { ChatContent, type ChatItem } from "../components/Chat/ChatContent";
+import { ChatInput } from "@/components/Chat/ChatInput";
+import { Header } from "../components/Chat/Header";
+import { api } from "../utils/api";
+import ChatSide from "@/components/Chat/Chat";
 
-const IndexPage: NextPage = () => {
+const Home: NextPage = () => {
   return (
-    <MessagesProvider>
-      <Layout>
-        <MessagesList />
-        <div className="fixed bottom-0 right-0 left-0">
-          <MessageForm />
+    <>
+      <div className="flex flex-row">
+        <div className="w-1/2">
+          <ChatSide />
         </div>
-      </Layout>
-    </MessagesProvider>
-  )
-}
+        <div className="w-1/2">
+          <iframe src='anotate.pdf' width="100%" height="100%" />
+        </div>
+      </div>
+    </>
+  );
+};
 
-export default IndexPage;
+export default Home;
