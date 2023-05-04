@@ -6,18 +6,20 @@ import { ChatInput } from "@/components/Chat/ChatInput";
 import { Header } from "../components/Chat/Header";
 import { api } from "../utils/api";
 import ChatSide from "@/components/Chat/Chat";
+import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels";
 
 const Home: NextPage = () => {
   return (
     <>
-      <div className="flex flex-row">
-        <div className="w-1/2">
+      <PanelGroup direction="horizontal">
+        <Panel defaultSize={50} minSize={50}>
           <ChatSide />
-        </div>
-        <div className="w-1/2">
+        </Panel>
+        <PanelResizeHandle />
+        <Panel defaultSize={50} minSize={50}>
           <iframe src='anotate.pdf' width="100%" height="100%" />
-        </div>
-      </div>
+        </Panel>
+      </PanelGroup>
     </>
   );
 };

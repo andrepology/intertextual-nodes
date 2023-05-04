@@ -5,7 +5,7 @@ export default async function createMessage(
     res: NextApiResponse,
 ) {
     const { messages } = req.body;
-    const apiKey = process.env.OPENAI_KEY;
+    const apiKey = process.env.OPENAI_KEY; 
     const url = 'https://api.openai.com/v1/chat/completions';
 
     const body = JSON.stringify({
