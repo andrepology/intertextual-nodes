@@ -6,7 +6,7 @@ import { useState, useRef } from "react";
 import { api } from "@/utils/api";
 
 export default function ChatSide () {
-    const [chatItems, setChatItems] = useState<ChatItem[]>([]);
+  const [chatItems, setChatItems] = useState<ChatItem[]>([]);
   const [waiting, setWaiting] = useState<boolean>(false);
   const scrollToRef = useRef<HTMLDivElement>(null);
 

@@ -2,6 +2,7 @@ import { Avatar } from "./Avatar";
 import clsx from "clsx";
 import { type Author } from "../../utils/types";
 import ReactMarkdown from "react-markdown";
+import { useState } from "react";
 
 export type ChatItem = {
   author: Author;
