@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { FiFile, FiFolder } from 'react-icons/fi';
+import { FiFile, FiFolder, FiChevronLeft } from 'react-icons/fi';
 import { NextPage } from 'next';
 import path from 'path';
-import fs from 'fs';
+import FileMetadataGenerator from '@/components/drive/metadataReader';
+import MetadataList from '@/components/drive/metadataList';
 
 interface Item {
   name: string;
@@ -102,30 +103,30 @@ const FileList: NextPage<{ folders: Folder[] }> = ({ folders }) => {
     return null;
   };
 
-  useEffect(() => {
-    const fetchFileMetadata = async () => {
-      try {
-        const response = await fetch('/api/nodes/metadata', {
-          method: 'POST',
-          body: JSON.stringify({ fileName: selectedFile }),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
+  const fetchFileMetadata = async (fileName: string) => {
+    try {
+      const response = await fetch('/api/file-metadata', {
+        method: 'POST',
+        body: JSON.stringify({ fileName }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-        if (response.ok) {
-          const fileMetadata = await response.json();
-          setFileMetadata(fileMetadata);
-        } else {
-          console.error('Failed to fetch file metadata:', response.status, response.statusText);
-        }
-      } catch (error) {
-        console.error('Failed to fetch file metadata:', error);
+      if (response.ok) {
+        const fileMetadata = await response.json();
+        setFileMetadata(fileMetadata);
+      } else {
+        console.error('Failed to fetch file metadata:', response.status, response.statusText);
       }
-    };
+    } catch (error) {
+      console.error('Failed to fetch file metadata:', error);
+    }
+  };
 
+  useEffect(() => {
     if (selectedFile) {
-      fetchFileMetadata();
+      fetchFileMetadata(selectedFile);
     }
   }, [selectedFile]);
 
@@ -140,72 +141,22 @@ const FileList: NextPage<{ folders: Folder[] }> = ({ folders }) => {
           </ul>
         </div>
       </div>
+      <FileMetadataGenerator />
       {renderFileMetadata()}
     </>
   );
 };
 
-export const getServerSideProps = async () => {
-  const publicDir = path.join(process.cwd(), 'public');
-  const items: fs.Dirent[] = await new Promise((resolve, reject) => {
-    fs.readdir(publicDir, { withFileTypes: true }, (error, files) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(files);
-      }
-    });
-  });
-
-  const folders: Folder[] = [];
-
-  for (const item of items) {
-    const itemName = item.name;
-    const isFolder = item.isDirectory();
-
-    if (isFolder) {
-      const folderPath = path.join(publicDir, itemName);
-      const folderItems: fs.Dirent[] = await new Promise((resolve, reject) => {
-        fs.readdir(folderPath, { withFileTypes: true }, (error, files) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(files);
-          }
-        });
-      });
-
-      const folder: Folder = {
-        name: itemName,
-        isFolder: true,
-        items: [],
-      };
-
-      for (const folderItem of folderItems) {
-        const folderItemName = folderItem.name;
-        const isItemFolder = folderItem.isDirectory();
-
-        folder.items.push({
-          name: folderItemName,
-          isFolder: isItemFolder,
-        });
-      }
-
-      folders.push(folder);
-    } else {
-      folders.push({
-        name: itemName,
-        isFolder: false,
-        items: [],
-      });
-    }
-  }
+export async function getServerSideProps() {
+  // Fetch file structure and metadata from the API endpoint
+  const response = await fetch('/api/file-structure');
+  const { folders } = await response.json();
 
   return {
     props: {
       folders,
     },
   };
-};
+}
 
 export default FileList;
