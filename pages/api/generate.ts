@@ -1,37 +1,29 @@
-import type { NextRequest } from "next/server";
-import { OpenAIStream, OpenAIStreamPayload } from "@/utils/chat/OpenAiStream";
+import { NextApiHandler } from 'next';
+import { createReadStream } from 'fs';
+import FormData from 'form-data';
+import fetch from 'node-fetch';
 
-if (!process.env.OPENAI_API_KEY) {
-    throw new Error("You do not have an API key set to interact with OpenAI")
-}
+const handler: NextApiHandler = async (req, res) => {
+  if (req.method === 'POST') {
+    const form = new FormData();
+    const pdfStream = createReadStream(req.body.pdf.path);
+    form.append('pdf', pdfStream, { filename: req.body.pdf.name });
 
-export const config = {
-    runtime: 'edge',
-};
-
-const handler = async (req: Request): Promise<Response> => {
-    const { prompt } = (await req.json()) as {
-        prompt?: string;
-    };
-  
-    if (!prompt) {
-        return new Response("No prompt in the request", { status: 400 });
+    try {
+      const response = await fetch('http://127.0.0.1:8000/generate', {
+        method: 'POST',
+        body: form,
+        headers: form.getHeaders(),
+      });
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Something went wrong.' });
     }
-  
-    const payload: OpenAIStreamPayload = {
-        model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.7,
-        top_p: 1,
-        frequency_penalty: 0,
-        presence_penalty: 0,
-        max_tokens: 200,
-        stream: true,
-        n: 1,
-    };
-  
-    const stream = await OpenAIStream(payload);
-    return new Response(stream);
+  } else {
+    res.status(405).json({ message: 'Method not allowed' });
+  }
 };
-  
+
 export default handler;
