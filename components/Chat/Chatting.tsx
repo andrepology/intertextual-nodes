@@ -51,7 +51,6 @@ const Chatting: NextPage = () => {
     };
 
     return (
-      <div className="flex max-w-5xl mx-auto flex-col items-center justify-center py-2 min-h-screen" style={{height: "50vh"}}>
         <div className="flex max-w-5xl mx-auto flex-col items-center justify-center py-2 min-h-screen">
             <Head>
                 <title>DeSci Chat Generator</title>
@@ -113,7 +112,7 @@ const Chatting: NextPage = () => {
           )}
                 </div>
             </main>
-        </div></div>
+        </div>
     )
 }
 
