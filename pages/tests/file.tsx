@@ -2,11 +2,11 @@ import React, { useEffect, useRef } from 'react';
 
 const PdfPage: React.FC = () => {
   const pdfViewerRef = useRef<HTMLObjectElement>(null);
-  const searchText = 'recent years';
+  const searchText = 'recent';
 
   useEffect(() => {
     const highlightText = () => {
-      if (typeof window !== 'undefined' && window.find && window.getSelection) {
+      if ((window as any).find && typeof window.getSelection === 'function') {
         const pdfViewer = pdfViewerRef.current;
         const pdfContent = pdfViewer?.ownerDocument;
         const text = pdfContent?.documentElement.innerHTML;
@@ -26,7 +26,7 @@ const PdfPage: React.FC = () => {
   return (
     <div>
       <object
-        data="/path/to/your/pdf.pdf"
+        data="anotate.pdf"
         type="application/pdf"
         width="100%"
         height="600"
