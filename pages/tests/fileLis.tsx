@@ -3,6 +3,7 @@ import { FiFile, FiFolder, FiChevronLeft } from 'react-icons/fi';
 import { NextPage } from 'next';
 import fs from 'fs';
 import path from 'path';
+import FileMetadataGenerator from '@/components/drive/metadataReader';
 // import { Header } from '../Chat/Header';
 // import ChatSide from '../Chat/Chat';
 
@@ -78,15 +79,18 @@ const FileList: NextPage<{ folders: Folder[] }> = ({ folders }) => {
   };
 
   return (
-    <div>
-      {/* <Header />
-      <ChatSide /> */}
-      <div className="bg-white shadow-lg rounded-lg overflow-hidden">
-        <ul className="divide-y divide-gray-200">
-          {renderFiles(currentFolder)}
-        </ul>
+    <>
+      <div>
+        {/* <Header />
+        <ChatSide /> */}
+        <div className="bg-white shadow-lg rounded-lg overflow-hidden">
+          <ul className="divide-y divide-gray-200">
+            {renderFiles(currentFolder)}
+          </ul>
+        </div>
       </div>
-    </div>
+      <FileMetadataGenerator />
+    </>
   );
 };
 
