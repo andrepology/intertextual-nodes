@@ -1,37 +1,41 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
+import { Document, Page, pdfjs } from 'react-pdf';
+
+// Enable pdfjs worker
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
 const PdfPage: React.FC = () => {
-  const pdfViewerRef = useRef<HTMLObjectElement>(null);
-  const searchText = 'recent';
+  const pdfUrl = 'anotate.pdf'; // Replace with your PDF file path
+  const highlightedText = 'a'; // Replace with the text you want to highlight
 
-  useEffect(() => {
-    const highlightText = () => {
-      if ((window as any).find && typeof window.getSelection === 'function') {
-        const pdfViewer = pdfViewerRef.current;
-        const pdfContent = pdfViewer?.ownerDocument;
-        const text = pdfContent?.documentElement.innerHTML;
-        const highlightedText = `<span style="background-color: yellow">${searchText}</span>`;
-        const regex = new RegExp(searchText, 'gi');
-        const highlightedContent = text?.replace(regex, highlightedText);
-
-        if (pdfContent) {
-          pdfContent.documentElement.innerHTML = highlightedContent || '';
-        }
+  const renderTextLayer = (textItems: any[]) => {
+    const textLayer = textItems.map(({ str, transform }, index) => {
+      if (str.toLowerCase() === highlightedText) {
+        return (
+          <span
+            key={index}
+            style={{ backgroundColor: 'yellow' }} // Customize the highlight color here
+          >
+            {str}{' '}
+          </span>
+        );
       }
-    };
 
-    highlightText();
-  }, []);
+      return `${str} `;
+    });
+
+    return textLayer;
+  };
 
   return (
     <div>
-      <object
-        data="anotate.pdf"
-        type="application/pdf"
-        width="100%"
-        height="600"
-        ref={pdfViewerRef}
-      />
+      <Document file={pdfUrl} renderMode="svg">
+        <Page
+          pageNumber={1} // Change the page number as needed
+          width={600} // Set the desired width for the page
+          renderTextLayer={renderTextLayer}
+        />
+      </Document>
     </div>
   );
 };

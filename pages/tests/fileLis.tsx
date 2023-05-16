@@ -4,6 +4,8 @@ import { NextPage } from 'next';
 import fs from 'fs';
 import path from 'path';
 import FileMetadataGenerator from '@/components/drive/metadataReader';
+import MetadataList from '@/components/drive/metadataList';
+
 // import { Header } from '../Chat/Header';
 // import ChatSide from '../Chat/Chat';
 
@@ -18,6 +20,7 @@ interface Folder extends Item {
 
 const FileList: NextPage<{ folders: Folder[] }> = ({ folders }) => {
   const [currentFolder, setCurrentFolder] = useState<Folder | null>(null);
+
 
   const handleItemClick = (item: Item) => {
     if (item.isFolder) {
