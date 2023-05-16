@@ -3,8 +3,8 @@ import { FiFile } from 'react-icons/fi';
 import { NextPage } from 'next';
 import fs from 'fs';
 import path from 'path';
-import { Header } from '../Chat/Header';
-import ChatSide from '../Chat/Chat';
+import { Header } from '@/components/Chat/Header';
+import ChatSide from '@/components/Chat/Chat';
 
 interface File {
   name: string;
