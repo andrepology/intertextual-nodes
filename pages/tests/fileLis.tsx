@@ -1,10 +1,8 @@
-import React, { useState } from 'react';
-import { FiFile, FiFolder, FiChevronLeft } from 'react-icons/fi';
+import React, { useState, useEffect } from 'react';
+import { FiFile, FiFolder } from 'react-icons/fi';
 import { NextPage } from 'next';
-import fs from 'fs';
 import path from 'path';
-import FileMetadataGenerator from '@/components/drive/metadataReader';
-import MetadataList from '@/components/drive/metadataList';
+import fs from 'fs';
 
 interface Item {
   name: string;
@@ -15,20 +13,34 @@ interface Folder extends Item {
   items: Item[];
 }
 
+interface Metadata {
+  extension: string;
+  fileName: string;
+  author: string[];
+}
+
 const FileList: NextPage<{ folders: Folder[] }> = ({ folders }) => {
   const [currentFolder, setCurrentFolder] = useState<Folder | null>(null);
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
+  const [fileMetadata, setFileMetadata] = useState<Metadata | null>(null);
 
   const handleItemClick = (item: Item) => {
     if (item.isFolder) {
       const folder = folders.find((folder) => folder.name === item.name);
       if (folder) {
         setCurrentFolder(folder);
+        setSelectedFile(null); // Reset selected file when entering a folder
       }
+    } else {
+      setSelectedFile(item.name);
+      setFileMetadata(null); // Reset file metadata when selecting a new file
     }
   };
 
   const handleBackClick = () => {
     setCurrentFolder(null);
+    setSelectedFile(null); // Reset selected file when going back
+    setFileMetadata(null); // Reset file metadata when going back
   };
 
   const renderIcon = (item: Item) => {
@@ -78,6 +90,45 @@ const FileList: NextPage<{ folders: Folder[] }> = ({ folders }) => {
     }
   };
 
+  const renderFileMetadata = () => {
+    if (selectedFile && fileMetadata) {
+      return (
+        <div className="bg-gray-100 p-4">
+          <h3 className="text-lg font-medium mb-2">File Metadata</h3>
+          <pre>{JSON.stringify(fileMetadata, null, 2)}</pre>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  useEffect(() => {
+    const fetchFileMetadata = async () => {
+      try {
+        const response = await fetch('/api/nodes/metadata', {
+          method: 'POST',
+          body: JSON.stringify({ fileName: selectedFile }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const fileMetadata = await response.json();
+          setFileMetadata(fileMetadata);
+        } else {
+          console.error('Failed to fetch file metadata:', response.status, response.statusText);
+        }
+      } catch (error) {
+        console.error('Failed to fetch file metadata:', error);
+      }
+    };
+
+    if (selectedFile) {
+      fetchFileMetadata();
+    }
+  }, [selectedFile]);
+
   return (
     <>
       <div>
@@ -89,14 +140,22 @@ const FileList: NextPage<{ folders: Folder[] }> = ({ folders }) => {
           </ul>
         </div>
       </div>
-      <FileMetadataGenerator />
+      {renderFileMetadata()}
     </>
   );
 };
 
-export async function getServerSideProps() {
+export const getServerSideProps = async () => {
   const publicDir = path.join(process.cwd(), 'public');
-  const items = fs.readdirSync(publicDir, { withFileTypes: true });
+  const items: fs.Dirent[] = await new Promise((resolve, reject) => {
+    fs.readdir(publicDir, { withFileTypes: true }, (error, files) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(files);
+      }
+    });
+  });
 
   const folders: Folder[] = [];
 
@@ -106,7 +165,15 @@ export async function getServerSideProps() {
 
     if (isFolder) {
       const folderPath = path.join(publicDir, itemName);
-      const folderItems = fs.readdirSync(folderPath, { withFileTypes: true });
+      const folderItems: fs.Dirent[] = await new Promise((resolve, reject) => {
+        fs.readdir(folderPath, { withFileTypes: true }, (error, files) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(files);
+          }
+        });
+      });
 
       const folder: Folder = {
         name: itemName,
@@ -139,6 +206,6 @@ export async function getServerSideProps() {
       folders,
     },
   };
-}
+};
 
 export default FileList;
