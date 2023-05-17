@@ -6,9 +6,6 @@ import path from 'path';
 import FileMetadataGenerator from '@/components/drive/metadataReader';
 import MetadataList from '@/components/drive/metadataList';
 
-// import { Header } from '../Chat/Header';
-// import ChatSide from '../Chat/Chat';
-
 interface Item {
   name: string;
   isFolder: boolean;
@@ -20,7 +17,6 @@ interface Folder extends Item {
 
 const FileList: NextPage<{ folders: Folder[] }> = ({ folders }) => {
   const [currentFolder, setCurrentFolder] = useState<Folder | null>(null);
-
 
   const handleItemClick = (item: Item) => {
     if (item.isFolder) {
@@ -68,7 +64,8 @@ const FileList: NextPage<{ folders: Folder[] }> = ({ folders }) => {
         </>
       );
     } else {
-      return folders.map((folder, index) => (
+      const sortedFolders = folders.filter((item) => item.isFolder).concat(folders.filter((item) => !item.isFolder));
+      return sortedFolders.map((folder, index) => (
         <li key={index} className="px-6 py-4 hover:bg-gray-100 cursor-pointer" onClick={() => handleItemClick(folder)}>
           <div className="flex items-center">
             <div className="flex-shrink-0">{renderIcon(folder)}</div>
@@ -144,4 +141,4 @@ export async function getServerSideProps() {
   };
 }
 
-export default FileList;  
+export default FileList;

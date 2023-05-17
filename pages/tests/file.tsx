@@ -33,7 +33,7 @@ const PdfPage: React.FC = () => {
         <Page
           pageNumber={1} // Change the page number as needed
           width={600} // Set the desired width for the page
-          renderTextLayer={renderTextLayer}
+          // renderTextLayer={renderTextLayer}
         />
       </Document>
     </div>
