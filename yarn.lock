@@ -5346,10 +5346,10 @@ react-pdf@^6.2.2:
     tiny-invariant "^1.0.0"
     tiny-warning "^1.0.0"
 
-react-resizable-panels@^0.0.42:
-  version "0.0.42"
-  resolved "https://registry.npmjs.org/react-resizable-panels/-/react-resizable-panels-0.0.42.tgz"
-  integrity sha512-nOaN9DeUTsmKjN3MFGaLd35kngGyO29SHRLdBRafYR1SV2F/LbWbpVUKVPwL2fBBTnQe2/rqOQwT4k+3cKeK+w==
+react-resizable-panels@^0.0.45:
+  version "0.0.45"
+  resolved "https://registry.yarnpkg.com/react-resizable-panels/-/react-resizable-panels-0.0.45.tgz#4dc67df5cf09b1dd8c549224d44bde5287973366"
+  integrity sha512-ZgeW43qQemzRDLPnVc75l0U49r6u4I1WAfon2M9e6858atJCimXANsj6xxdEBXUd+bWptIRQ0JjXL3Q625cDnA==
 
 react-selecto@^1.12.0:
   version "1.22.2"

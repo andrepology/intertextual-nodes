@@ -5,6 +5,11 @@ import path from 'path';
 import fs from 'fs';
 import Image from 'next/image';
 import { Document, Page } from 'react-pdf';
+import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
+import ChatBox from '@/components/Chat/ChatBox';
+import { ChatInput } from '@/components/Chat/ChatInput';
+import Chatting from './Chatting';
+import QuestionInput from '@/components/Chat/Tests/FlaskInput';
 
 interface Item {
   name: string;
@@ -22,6 +27,7 @@ interface Metadata {
 }
 
 const FileList: NextPage<{ folders: Folder[] }> = ({ folders }) => {
+  const [isResizing, setIsResizing] = useState<boolean>(false);
   const [currentFolder, setCurrentFolder] = useState<Folder | null>(null);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [fileMetadata, setFileMetadata] = useState<Metadata | null>(null);
@@ -211,17 +217,30 @@ const FileList: NextPage<{ folders: Folder[] }> = ({ folders }) => {
 
   return (
     <div className="flex">
-      <div className="w-1/2 pr-4">
-        <div className="bg-white shadow-lg rounded-lg overflow-hidden">
-          <ul className="divide-y divide-gray-200">{renderFiles(currentFolder)}</ul>
-        </div>
-      </div>
-      <div className="w-1/2 pl-4">
-        <div className="bg-white shadow-lg rounded-lg overflow-hidden">
-          {renderFileMetadata()}
-          {renderFileContent()}
-        </div>
-      </div>
+      <PanelGroup direction="horizontal">
+        <Panel defaultSize={50} minSize={10}>
+          <div className="pr-4">
+            <div className="bg-white shadow-lg rounded-lg overflow-hidden">
+              <ul className="divide-y divide-gray-200">{renderFiles(currentFolder)}</ul>
+            </div>
+          </div>
+          {/* <ChatBox /> */}
+          {/* <Chatting /> */}
+          <QuestionInput />
+        </Panel>
+        <PanelResizeHandle
+          className="w-10 h-10 bg-gray-600 hover:bg-gray-700"
+          onDragging={(isDragging) => setIsResizing(isDragging)}
+        />
+        <Panel defaultSize={50} minSize={10}>
+          <div className="pl-4">
+            <div className="bg-white shadow-lg rounded-lg overflow-hidden">
+              {renderFileContent()}
+              {renderFileMetadata()}
+            </div>
+          </div>
+        </Panel>
+      </PanelGroup>
     </div>
   );  
 };

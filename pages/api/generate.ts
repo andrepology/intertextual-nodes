@@ -1,50 +1,37 @@
-// import { NextApiHandler } from 'next';
-// import { createReadStream } from 'fs';
-// import FormData from 'form-data';
-// import fetch from 'node-fetch';
-// import pdfjsLib from 'pdfjs-dist/legacy/build/pdf';
+import type { NextRequest } from "next/server";
+import { OpenAIStream, OpenAIStreamPayload } from "@/utils/chat/OpenAiStream";
 
-// const handler: NextApiHandler = async (req, res) => {
-//   if (req.method === 'POST') {
-//     const form = new FormData();
-//     const pdfStream = createReadStream(req.body.pdf.path);
-//     form.append('pdf', pdfStream, { filename: req.body.pdf.name });
+if (!process.env.OPENAI_API_KEY) {
+    throw new Error("You do not have an API key set to interact with OpenAI")
+}
 
-//     try {
-//         const pdfData = await new Promise<Buffer>((resolve, reject) => {
-//             const chunks: Array<Buffer | string> = [];
-//             pdfStream.on('data', chunk => chunks.push(chunk));
-//             pdfStream.on('end', () => resolve(Buffer.concat(chunks)));
-//             pdfStream.on('error', reject);
-//           });                  
-//       const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
-//       const textContents = await Promise.all(
-//         Array.from(Array(pdf.numPages).keys()).map(async i => {
-//           const page = await pdf.getPage(i + 1);
-//           const content = await page.getTextContent();
-//           return content.items.map(item => item.str).join('');
-//         })
-//       );
+export const config = {
+    runtime: 'edge',
+};
 
-//       const pineconeData = {
-//         text: textContents.join('\n'),
-//         filename: req.body.pdf.name,
-//       };
-//       await fetch('http://127.0.0.1:8000/generate', {
-//         method: 'POST',
-//         headers: {
-//           'Content-Type': 'application/json',
-//         },
-//         body: JSON.stringify(pineconeData),
-//       });
-//       res.status(200).json({ message: 'PDF uploaded successfully' });
-//     } catch (error) {
-//       console.error(error);
-//       res.status(500).json({ message: 'Internal server error' });
-//     }
-//   } else {
-//     res.status(405).json({ message: 'Method not allowed' });
-//   }
-// };
-
-// export default handler;
+const handler = async (req: Request): Promise<Response> => {
+    const { prompt } = (await req.json()) as {
+        prompt?: string;
+    };
+  
+    if (!prompt) {
+        return new Response("No prompt in the request", { status: 400 });
+    }
+  
+    const payload: OpenAIStreamPayload = {
+        model: "gpt-3.5-turbo",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.7,
+        top_p: 1,
+        frequency_penalty: 0,
+        presence_penalty: 0,
+        max_tokens: 200,
+        stream: true,
+        n: 1,
+    };
+  
+    const stream = await OpenAIStream(payload);
+    return new Response(stream);
+};
+  
+export default handler;
