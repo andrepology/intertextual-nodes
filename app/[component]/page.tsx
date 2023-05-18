@@ -39,7 +39,7 @@ export const ResearchComponent: NextPage = () => {
     const viewMode = Boolean(params?.get("view")) || false
 
     return (
-        <div className="m-2 border w-full h-full">
+        <div className="border w-full h-full">
 
             Component metadata
 
@@ -48,8 +48,6 @@ export const ResearchComponent: NextPage = () => {
                 <div> Component Description: foo bar </div>
                 <div> Component Tags: #foo </div>
             </div>
-
-
 
             <Link href = { `${urlPath}?view=true` }> View Component </Link>
 
