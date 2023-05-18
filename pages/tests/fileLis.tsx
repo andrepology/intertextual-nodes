@@ -224,7 +224,7 @@ const FileList: NextPage<{ folders: Folder[] }> = ({ folders }) => {
               <ul className="divide-y divide-gray-200">{renderFiles(currentFolder)}</ul>
             </div>
           </div>
-          {/* <ChatBox /> */}
+          <ChatBox />
           {/* <Chatting /> */}
           <QuestionInput />
         </Panel>
