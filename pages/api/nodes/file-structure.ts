@@ -1,4 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
+import path from 'path';
+import fs from 'fs';
 
 interface Item {
   name: string;
@@ -9,40 +11,39 @@ interface Folder extends Item {
   items: Item[];
 }
 
-async function getFileStructure(): Promise<Folder[]> {
-  // Here, you can implement the logic to fetch the file structure
-  // and return it as an array of Folder objects
+async function getFolderItems(folderPath: string): Promise<Item[]> {
+  const publicDir = path.join(process.cwd(), 'public', folderPath);
+  const folderItems = await fs.promises.readdir(publicDir, { withFileTypes: true });
 
-  // For demonstration purposes, let's assume we have a static file structure
-  const folders: Folder[] = [
-    {
-      name: 'Folder 1',
-      isFolder: true,
-      items: [
-        { name: 'File 1', isFolder: false },
-        { name: 'File 2', isFolder: false },
-        { name: 'Subfolder 1', isFolder: true, items: [{ name: 'File 3', isFolder: false }] },
-      ],
-    },
-    {
-      name: 'Folder 2',
-      isFolder: true,
-      items: [{ name: 'File 4', isFolder: false }],
-    },
-    {
-      name: 'File 5',
-      isFolder: false,
-      items: [],
-    },
-  ];
+  const items: Item[] = [];
+  for (const item of folderItems) {
+    const itemName = item.name;
+    const isFolder = item.isDirectory();
 
-  return folders;
+    if (isFolder) {
+      const subfolderItems = await getFolderItems(path.join(folderPath, itemName));
+      const folder: Folder = {
+        name: itemName,
+        isFolder: true,
+        items: subfolderItems,
+      };
+      items.push(folder);
+    } else {
+      items.push({
+        name: itemName,
+        isFolder: false,
+      });
+    }
+  }
+
+  return items;
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const folders = await getFileStructure();
-    res.status(200).json({ folders });
+    const { folderPath } = req.query;
+    const items = await getFolderItems(folderPath as string);
+    res.status(200).json({ items });
   } catch (error) {
     console.error('Failed to fetch file structure:', error);
     res.status(500).json({ error: 'Failed to fetch file structure' });

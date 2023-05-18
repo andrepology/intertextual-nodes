@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { FiFile, FiFolder, FiChevronLeft } from 'react-icons/fi';
+import { FiFile, FiFolder } from 'react-icons/fi';
 import { NextPage } from 'next';
 import path from 'path';
-import FileMetadataGenerator from '@/components/drive/metadataReader';
-import MetadataList from '@/components/drive/metadataList';
+import fs from 'fs';
+import Image from 'next/image';
+import { Document, Page } from 'react-pdf';
 
 interface Item {
   name: string;
@@ -24,6 +25,7 @@ const FileList: NextPage<{ folders: Folder[] }> = ({ folders }) => {
   const [currentFolder, setCurrentFolder] = useState<Folder | null>(null);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [fileMetadata, setFileMetadata] = useState<Metadata | null>(null);
+  const [fileContents, setFileContents] = useState<any>(null);
 
   const handleItemClick = (item: Item) => {
     if (item.isFolder) {
@@ -91,6 +93,82 @@ const FileList: NextPage<{ folders: Folder[] }> = ({ folders }) => {
     }
   };
 
+  useEffect(() => {
+    const fetchFileContents = async () => {
+      try {
+        const response = await fetch(`/api/nodes/content?fileName=${selectedFile}`);
+        if (response.ok) {
+          const data = await response.json();
+          setFileContents(data);
+        } else {
+          console.error('Failed to fetch file contents:', response.status, response.statusText);
+        }
+      } catch (error) {
+        console.error('Failed to fetch file contents:', error);
+      }
+    };
+
+    if (selectedFile && fileMetadata?.extension === 'json') {
+      fetchFileContents();
+    }
+  }, [selectedFile]);
+
+  const renderFileContent = () => {
+    if (selectedFile && fileMetadata) {
+      const { extension } = fileMetadata;
+
+      if (extension === 'jpg' || extension === 'jpeg' || extension === 'png' || extension === 'gif' || extension === 'svg') {
+        return (
+          <div className="my-4">
+            <Image src={`/${selectedFile}`} alt={selectedFile} width={300} height={200} />
+          </div>
+        );
+      } else if (extension === 'pdf') {
+        return (
+          <div className="my-4">
+            <Document file={`/${selectedFile}`}>
+              <Page pageNumber={1} width={300} />
+            </Document>
+          </div>
+        );
+      } else if (extension === 'json') {
+        if (fileContents) {
+          return (
+            <div className="bg-gray-100 p-4">
+              <h3 className="text-lg font-medium mb-2">File Contents</h3>
+              <pre>{JSON.stringify(fileContents, null, 2)}</pre>
+            </div>
+          );
+        } else {
+          return (
+            <div className="bg-red-100 p-4">
+              <p className="text-lg text-red-700">Failed to fetch file contents.</p>
+            </div>
+          );
+        }
+      } else if (extension === 'ipynb') {
+        return (
+          <iframe src={`/${selectedFile}`} frameBorder="0" width="100%" height="600px" />
+        );
+      } else if (['js', 'ts', 'java', 'py', 'rb', 'go', 'cpp', 'c', 'cs'].includes(extension)) {
+        const fileContents = '// File content goes here';
+        return (
+          <div className="bg-gray-100 p-4">
+            <h3 className="text-lg font-medium mb-2">File Contents</h3>
+            <pre>{fileContents}</pre>
+          </div>
+        );
+      } else {
+        return (
+          <div className="bg-red-100 p-4">
+            <p className="text-lg text-red-700">Unsupported File Type</p>
+          </div>
+        );
+      }
+    }
+    return null;
+  };
+
   const renderFileMetadata = () => {
     if (selectedFile && fileMetadata) {
       return (
@@ -103,60 +181,107 @@ const FileList: NextPage<{ folders: Folder[] }> = ({ folders }) => {
     return null;
   };
 
-  const fetchFileMetadata = async (fileName: string) => {
-    try {
-      const response = await fetch('/api/file-metadata', {
-        method: 'POST',
-        body: JSON.stringify({ fileName }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const fileMetadata = await response.json();
-        setFileMetadata(fileMetadata);
-      } else {
-        console.error('Failed to fetch file metadata:', response.status, response.statusText);
-      }
-    } catch (error) {
-      console.error('Failed to fetch file metadata:', error);
-    }
-  };
-
   useEffect(() => {
+    const fetchFileMetadata = async () => {
+      try {
+        const response = await fetch('/api/nodes/metadata', {
+          method: 'POST',
+          body: JSON.stringify({ fileName: selectedFile }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const fileMetadata = await response.json();
+          setFileMetadata(fileMetadata);
+        } else {
+          console.error('Failed to fetch file metadata:', response.status, response.statusText);
+        }
+      } catch (error) {
+        console.error('Failed to fetch file metadata:', error);
+      }
+    };
+
     if (selectedFile) {
-      fetchFileMetadata(selectedFile);
+      fetchFileMetadata();
     }
   }, [selectedFile]);
 
   return (
     <>
-      <div>
-        {/* <Header />
-        <ChatSide /> */}
-        <div className="bg-white shadow-lg rounded-lg overflow-hidden">
-          <ul className="divide-y divide-gray-200">
-            {renderFiles(currentFolder)}
-          </ul>
-        </div>
+      <div className="bg-white shadow-lg rounded-lg overflow-hidden">
+        <ul className="divide-y divide-gray-200">
+          {renderFiles(currentFolder)}
+        </ul>
       </div>
-      <FileMetadataGenerator />
       {renderFileMetadata()}
+      {renderFileContent()}
     </>
   );
 };
 
-export async function getServerSideProps() {
-  // Fetch file structure and metadata from the API endpoint
-  const response = await fetch('/api/file-structure');
-  const { folders } = await response.json();
+export const getServerSideProps = async () => {
+  const publicDir = path.join(process.cwd(), 'public');
+  const items: fs.Dirent[] = await new Promise((resolve, reject) => {
+    fs.readdir(publicDir, { withFileTypes: true }, (error, files) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(files);
+      }
+    });
+  });
+
+  const folders: Folder[] = [];
+
+  for (const item of items) {
+    const itemName = item.name;
+    const isFolder = item.isDirectory();
+
+    if (isFolder) {
+      const folderPath = path.join(publicDir, itemName);
+      const folderItems: fs.Dirent[] = await new Promise((resolve, reject) => {
+        fs.readdir(folderPath, { withFileTypes: true }, (error, files) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(files);
+          }
+        });
+      });
+
+      const folder: Folder = {
+        name: itemName,
+        isFolder: true,
+        items: [],
+      };
+
+      for (const folderItem of folderItems) {
+        const folderItemName = folderItem.name;
+        const isItemFolder = folderItem.isDirectory();
+
+        folder.items.push({
+          name: folderItemName,
+          isFolder: isItemFolder,
+        });
+      }
+
+      folders.push(folder);
+    } else {
+      folders.push({
+        name: itemName,
+        isFolder: false,
+        items: [],
+      });
+    }
+  }
 
   return {
     props: {
       folders,
     },
   };
-}
+};
 
 export default FileList;
