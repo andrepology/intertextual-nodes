@@ -126,6 +126,7 @@ const FileList: NextPage<{ folders: Folder[] }> = ({ folders }) => {
       } else if (extension === 'pdf') {
         return (
           <div className="my-4">
+            <iframe src={`/${selectedFile}`} width='100%' height='1000px' />
             <Document file={`/${selectedFile}`}>
               <Page pageNumber={1} width={300} />
             </Document>
@@ -209,16 +210,20 @@ const FileList: NextPage<{ folders: Folder[] }> = ({ folders }) => {
   }, [selectedFile]);
 
   return (
-    <>
-      <div className="bg-white shadow-lg rounded-lg overflow-hidden">
-        <ul className="divide-y divide-gray-200">
-          {renderFiles(currentFolder)}
-        </ul>
+    <div className="flex">
+      <div className="w-1/2 pr-4">
+        <div className="bg-white shadow-lg rounded-lg overflow-hidden">
+          <ul className="divide-y divide-gray-200">{renderFiles(currentFolder)}</ul>
+        </div>
       </div>
-      {renderFileMetadata()}
-      {renderFileContent()}
-    </>
-  );
+      <div className="w-1/2 pl-4">
+        <div className="bg-white shadow-lg rounded-lg overflow-hidden">
+          {renderFileMetadata()}
+          {renderFileContent()}
+        </div>
+      </div>
+    </div>
+  );  
 };
 
 export const getServerSideProps = async () => {
