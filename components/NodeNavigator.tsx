@@ -1,15 +1,25 @@
-import Link from "next/link";
+import { Payment, columns } from "@/components/DriveTable/columns"
+import { DataTable } from "@/components/DriveTable/drive-table"
 
-export default function NodeNavigator() {
+async function getData(): Promise<Payment[]> {
+  // Fetch data from your API here.
+  return [
+    {
+      id: "728ed52f",
+      amount: 100,
+      status: "pending",
+      email: "m@example.com",
+    },
+    // ...
+  ]
+}
 
-    return (
-        <div>
-            Table
-            <div className="flex flex-col">
-                <Link href="/"> Home </Link>
-                <Link href="/component"> PDF </Link>
-                <Link href="/component2"> Code </Link>
-            </div>
-        </div>
-    )
+export default async function DemoPage() {
+  const data = await getData()
+
+  return (
+    <div className="container mx-auto py-10">
+      <DataTable columns={columns} data={data} />
+    </div>
+  )
 }
