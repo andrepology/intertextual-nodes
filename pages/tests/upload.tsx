@@ -27,7 +27,7 @@ const PdfPage = () => {
 
   return (
     <>
-    <MyComponent />
+    <p>MyComponent</p>
       {/* <iframe src="anotate.pdf" />
       <button onClick={extractPdfText}>Extract Text</button>
       {pdfText && <div>{pdfText}</div>} */}

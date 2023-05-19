@@ -5,7 +5,7 @@ const ChatBox = () => {
   const [response, setResponse] = useState("");
 
   const handleSendMessage = async () => {
-    const flaskUrl = "http://localhost:5000/answer"; // Replace with your Flask server URL
+    const flaskUrl = "http://127.0.0.1:5000/answer"; // Replace with your Flask server URL
 
     try {
       const flaskResponse = await fetch(flaskUrl, {

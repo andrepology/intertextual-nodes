@@ -8,7 +8,6 @@ import { Document, Page } from 'react-pdf';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 import ChatBox from '@/components/Chat/ChatBox';
 import { ChatInput } from '@/components/Chat/ChatInput';
-import Chatting from './Chatting';
 import QuestionInput from '@/components/Chat/Tests/FlaskInput';
 
 interface Item {
@@ -226,7 +225,7 @@ const FileList: NextPage<{ folders: Folder[] }> = ({ folders }) => {
           </div>
           <ChatBox />
           {/* <Chatting /> */}
-          <QuestionInput />
+          {/* <QuestionInput /> */}
         </Panel>
         <PanelResizeHandle
           className="w-10 h-10 bg-gray-600 hover:bg-gray-700"
